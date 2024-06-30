@@ -19,14 +19,6 @@ class block:
     def __init__(self):
         self.set = False
         self.values = np.zeros((24, 24))
-    def getAvgLeft(self):
-        return np.sum(self.values[:,0]) / 24
-    def getAvgRight(self):
-        return np.sum(self.values[:,23]) / 24
-    def getAvgTop(self):
-        return np.sum(self.values[0,:]) / 24
-    def getAvgBottom(self):
-        return np.sum(self.values[23,:]) / 24
 
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=(50, 50, 4)),
@@ -44,27 +36,31 @@ model = Sequential([
 model.compile(optimizer='adam', loss='mean_squared_error')
 model.load_weights("model.weights.h5")
 
-def predict(pdensity, vegetation, water, applicable):
+def predict(pdensity, vegetation, water, applicable, samplefreq):
     height = pdensity.shape[0]
     width = pdensity.shape[1]
-    hblocks = height // 23
-    wblocks = width // 23
+    hblocks = height // samplefreq
+    wblocks = width // samplefreq
     blockset = [[block() for i in range(wblocks)] for j in range(hblocks)]
     for i in range(hblocks):
         for j in range(wblocks):
-            if (i*23 -13 >= 0 and i*23 + 37 <= height and j*23 -13 >= 0 and j*23 + 37 <= width and np.sum(applicable[i*23:i*23+24, j*23:j*23+24]) > 288):
+            if (i*samplefreq -13 >= 0 and i*samplefreq + 37 <= height and j*samplefreq -13 >= 0 and j*samplefreq + 37 <= width and np.sum(applicable[i*samplefreq:i*samplefreq+24, j*samplefreq:j*samplefreq+24]) > 144):
                 blockset[i][j].set = True
-                input = np.stack((np.copy(pdensity[i*23-13:i*23+37, j*23-13:j*23+37]),
-                                  np.copy(vegetation[i*23-13:i*23+37, j*23-13:j*23+37]),
-                                  np.copy(water[i*23-13:i*23+37, j*23-13:j*23+37]),
-                                  np.copy(applicable[i*23-13:i*23+37, j*23-13:j*23+37])), axis=-1)
-                blockset[i][j].values = np.multiply(model.predict(np.array([input])).reshape(24, 24), applicable[i*23:i*23+24, j*23:j*23+24])
+                input = np.stack((np.copy(pdensity[i*samplefreq-13:i*samplefreq+37, j*samplefreq-13:j*samplefreq+37]),
+                                  np.copy(vegetation[i*samplefreq-13:i*samplefreq+37, j*samplefreq-13:j*samplefreq+37]),
+                                  np.copy(water[i*samplefreq-13:i*samplefreq+37, j*samplefreq-13:j*samplefreq+37]),
+                                  np.copy(applicable[i*samplefreq-13:i*samplefreq+37, j*samplefreq-13:j*samplefreq+37])), axis=-1)
+                blockset[i][j].values = model.predict(np.array([input])).reshape(24, 24)
 
     output = np.zeros((height, width))
+    numsamples = np.zeros((height, width))
     for i in range(hblocks):
         for j in range(wblocks):
             if blockset[i][j].set:
-                output[i*23:i*23+24, j*23:j*23+24] = blockset[i][j].values
+                output[i*samplefreq:i*samplefreq+24, j*samplefreq:j*samplefreq+24] += blockset[i][j].values
+                numsamples[i*samplefreq:i*samplefreq+24, j*samplefreq:j*samplefreq+24] += 1
+    output = np.divide(output, np.clip(numsamples, 1, 10))
+    output -= np.sum(np.multiply(output, applicable)) / np.sum(applicable)
+    output = np.multiply(output, applicable)
 
-    im = Image.fromarray((output + 10) * 12)
-    im.show()
+    return output
