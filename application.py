@@ -37,13 +37,13 @@ class MapEditor(tk.Frame):
             self.width = 2345
             self.height = 2334
         else:
-            self.pdensity = np.zeros((width, height, 3), dtype=np.uint8)
-            self.vegetation = np.zeros((width, height, 3), dtype=np.uint8)
-            self.water = np.zeros((width, height, 3), dtype=np.uint8)
-            self.applicable = np.zeros((width, height, 3), dtype=np.uint8)
+            self.pdensity = np.zeros((height, width, 3), dtype=np.uint8)
+            self.vegetation = np.zeros((height, width, 3), dtype=np.uint8)
+            self.water = np.zeros((height, width, 3), dtype=np.uint8)
+            self.applicable = np.zeros((height, width, 3), dtype=np.uint8)
             self.width = width
             self.height = height
-        self.temps = np.zeros((self.width, self.height, 3), dtype=np.uint8)
+        self.temps = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
         self.canvas_frame = tk.Frame(self) #is this really necessary
         self.canvas_frame.pack(side=tk.LEFT)
