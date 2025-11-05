@@ -11,5 +11,7 @@ To run the application Tkinter and Python is required on your system. All other 
 [Loom Presentation](https://www.loom.com/share/ff208d5e553643dc9e3752dc556ca8b6?sid=502277b3-28b6-4e8a-9906-bb8a2e0d9b9c)
 ## Demo:
 [![Video Title](https://img.youtube.com/vi/b5szkzNh34E/0.jpg)](https://www.youtube.com/watch?v=b5szkzNh34E)
+## Submission Sheet:
+[Submission Sheet](./submission_sheet.pdf)
 
 Placed 6th at the 2024 AI For Change Hackathon.
